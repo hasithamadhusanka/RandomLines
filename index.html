@@ -1,59 +1,648 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Lines Generator</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <h1>RandomLines</h1>
-        <form id="quoteForm">
-            <label for="quoteInput">Enter your quote here...</label>
-            <textarea id="quoteInput" placeholder="Enter your quote here..."></textarea>
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Random Lines</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
 
-            <label for="nameInput">Your Name</label>
-            <input type="text" id="nameInput" placeholder="Your name">
+    * {
+      box-sizing: border-box;
+    }
 
-            <label for="backgroundSelect">Choose Background</label>
-            <select id="backgroundSelect">
-                <option value="white">White Background</option>
-                <option value="lightblue">Light Blue Background</option>
-                <option value="darkblue">Dark Blue Background</option>
-                <option value="gray">Gray Background</option>
-            </select>
+    .app-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-            <label for="fontSelect">Choose Font</label>
-            <select id="fontSelect">
-                <option value="Arial">Arial</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Georgia">Georgia</option>
-            </select>
+    .content-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
 
-            <label for="fontSizeSelect">Font Size</label>
-            <select id="fontSizeSelect">
-                <option value="30">Font Size 30px</option>
-                <option value="40">Font Size 40px</option>
-                <option value="50">Font Size 50px</option>
-            </select>
+    .input-section {
+      background: white;
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
 
-            <label for="profilePicInput">Upload Profile Picture (Optional)</label>
-            <input type="file" id="profilePicInput">
+    .output-section {
+      background: white;
+      border-radius: 24px;
+      padding: 2.5rem;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
 
-            <button type="button" onclick="generateQuote()">Generate Quote</button>
-        </form>
+    h1 {
+      margin: 0 0 1.5rem 0;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a202c;
+      text-align: center;
+    }
 
-        <canvas id="quoteCanvas" style="display: none;"></canvas>
-        <button id="downloadBtn" style="display: none;" onclick="downloadQuote()">Download Quote</button>
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
 
-        <div id="socialShare">
-            <a href="#" id="shareFacebook">Share on Facebook</a>
-            <a href="#" id="shareTwitter">Share on Twitter</a>
-        </div>
-    </div>
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #2d3748;
+      font-size: 0.95rem;
+    }
 
-    <script src="script.js"></script>
-</body>
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      font-family: inherit;
+      background: white;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.75rem center;
+      background-size: 1.25rem;
+      padding-right: 2.5rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .file-upload-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .file-upload-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 1rem;
+      background: #f7fafc;
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      color: #4a5568;
+      font-weight: 600;
+    }
+
+    .file-upload-btn:hover {
+      background: #edf2f7;
+      border-color: #667eea;
+      color: #667eea;
+    }
+
+    input[type="file"] {
+      position: absolute;
+      left: -9999px;
+    }
+
+    .preview-image {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-top: 1rem;
+      border: 3px solid #667eea;
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .generate-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .generate-btn:active {
+      transform: translateY(0);
+    }
+
+    .card-canvas-wrapper {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    #cardCanvas {
+      max-width: 100%;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .download-btn {
+      padding: 1rem 2.5rem;
+      background: #48bb78;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
+      margin-bottom: 1rem;
+    }
+
+    .download-btn:hover {
+      background: #38a169;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+    }
+
+    .download-btn:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .social-share {
+      display: none;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .social-share.visible {
+      display: flex;
+    }
+
+    .social-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: white;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .facebook-btn {
+      background: #1877f2;
+    }
+
+    .facebook-btn:hover {
+      background: #145dbf;
+      transform: translateY(-2px);
+    }
+
+    .twitter-btn {
+      background: #1da1f2;
+    }
+
+    .twitter-btn:hover {
+      background: #0d8bd9;
+      transform: translateY(-2px);
+    }
+
+    .placeholder-text {
+      color: #a0aec0;
+      text-align: center;
+      padding: 3rem 2rem;
+      font-size: 1.1rem;
+    }
+
+    @media (max-width: 968px) {
+      .content-wrapper {
+        grid-template-columns: 1fr;
+      }
+
+      body {
+        padding: 1rem;
+      }
+
+      .input-section,
+      .output-section {
+        padding: 1.5rem;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .social-share {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .social-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <main class="app-container">
+   <div class="content-wrapper">
+    <section class="input-section">
+     <h1 id="appTitle">Profile Card Generator</h1>
+     <form id="cardForm">
+      <div class="form-group"><label for="nameInput">Your Name</label> <input type="text" id="nameInput" placeholder="John Doe" required>
+      </div>
+      <div class="form-group"><label for="textInput">Your Message</label> <textarea id="textInput" placeholder="Write something inspiring..." required></textarea>
+      </div>
+      <div class="form-group"><label for="backgroundSelect">Choose Background</label> <select id="backgroundSelect"> <option value="gradient">Gradient (Purple-Blue)</option> <option value="white">White Background</option> <option value="lightblue">Light Blue Background</option> <option value="darkblue">Dark Blue Background</option> <option value="gray">Gray Background</option> <option value="black">Black Background</option> </select>
+      </div>
+      <div class="form-group"><label for="imageInput">Profile Picture</label>
+       <div class="file-upload-wrapper"><label for="imageInput" class="file-upload-btn" id="fileLabel"> <span>📷</span> <span>Choose Image</span> </label> <input type="file" id="imageInput" accept="image/*" required>
+       </div><img id="previewImage" class="preview-image" style="display: none;">
+      </div><button type="submit" class="generate-btn" id="generateBtn">Generate Card</button>
+     </form>
+    </section>
+    <section class="output-section">
+     <div class="card-canvas-wrapper">
+      <canvas id="cardCanvas" width="600" height="800"></canvas>
+     </div><button class="download-btn" id="downloadBtn" disabled>Download Card</button>
+     <div class="social-share" id="socialShare"><a href="#" class="social-btn facebook-btn" id="shareFacebook" target="_blank" rel="noopener noreferrer"> <span>📘</span> <span id="facebookText">Share on Facebook</span> </a> <a href="#" class="social-btn twitter-btn" id="shareTwitter" target="_blank" rel="noopener noreferrer"> <span>🐦</span> <span id="twitterText">Share on Twitter</span> </a>
+     </div>
+     <div id="placeholder" class="placeholder-text">
+      Your beautiful card will appear here ✨
+     </div>
+    </section>
+   </div>
+  </main>
+  <script>
+    const defaultConfig = {
+      app_title: "Profile Card Generator",
+      button_text: "Generate Card",
+      download_text: "Download Card",
+      facebook_text: "Share on Facebook",
+      twitter_text: "Share on Twitter",
+      background_color: "#667eea",
+      card_surface_color: "#ffffff",
+      text_color: "#1a202c",
+      accent_color: "#764ba2",
+      button_color: "#48bb78",
+      font_family: "Inter",
+      font_size: 16
+    };
+
+    let uploadedImage = null;
+    let generatedCardDataUrl = null;
+    const canvas = document.getElementById('cardCanvas');
+    const ctx = canvas.getContext('2d');
+
+    async function onConfigChange(config) {
+      const appTitle = document.getElementById('appTitle');
+      const generateBtn = document.getElementById('generateBtn');
+      const downloadBtn = document.getElementById('downloadBtn');
+      const facebookText = document.getElementById('facebookText');
+      const twitterText = document.getElementById('twitterText');
+      
+      appTitle.textContent = config.app_title || defaultConfig.app_title;
+      generateBtn.textContent = config.button_text || defaultConfig.button_text;
+      downloadBtn.textContent = config.download_text || defaultConfig.download_text;
+      facebookText.textContent = config.facebook_text || defaultConfig.facebook_text;
+      twitterText.textContent = config.twitter_text || defaultConfig.twitter_text;
+
+      const customFont = config.font_family || defaultConfig.font_family;
+      const baseFontStack = '-apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif';
+      document.body.style.fontFamily = `${customFont}, ${baseFontStack}`;
+
+      const baseSize = config.font_size || defaultConfig.font_size;
+      document.body.style.fontSize = `${baseSize}px`;
+      document.querySelector('h1').style.fontSize = `${baseSize * 2}px`;
+      document.querySelectorAll('label').forEach(label => {
+        label.style.fontSize = `${baseSize * 0.95}px`;
+      });
+      document.querySelectorAll('input, textarea, select').forEach(input => {
+        input.style.fontSize = `${baseSize}px`;
+      });
+
+      const bgColor = config.background_color || defaultConfig.background_color;
+      const accentColor = config.accent_color || defaultConfig.accent_color;
+      document.body.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor} 100%)`;
+
+      const surfaceColor = config.card_surface_color || defaultConfig.card_surface_color;
+      document.querySelectorAll('.input-section, .output-section').forEach(section => {
+        section.style.background = surfaceColor;
+      });
+
+      const textColor = config.text_color || defaultConfig.text_color;
+      document.querySelectorAll('h1, label, .placeholder-text').forEach(el => {
+        el.style.color = textColor;
+      });
+
+      const buttonColor = config.button_color || defaultConfig.button_color;
+      downloadBtn.style.background = buttonColor;
+
+      generateBtn.style.background = `linear-gradient(135deg, ${bgColor} 0%, ${accentColor} 100%)`;
+      
+      if (uploadedImage && generatedCardDataUrl) {
+        const name = document.getElementById('nameInput').value;
+        const text = document.getElementById('textInput').value;
+        const background = document.getElementById('backgroundSelect').value;
+        if (name && text) {
+          generateCard(uploadedImage, name, text, background);
+        }
+      }
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [
+            {
+              get: () => config.background_color || defaultConfig.background_color,
+              set: (value) => {
+                config.background_color = value;
+                window.elementSdk.setConfig({ background_color: value });
+              }
+            },
+            {
+              get: () => config.card_surface_color || defaultConfig.card_surface_color,
+              set: (value) => {
+                config.card_surface_color = value;
+                window.elementSdk.setConfig({ card_surface_color: value });
+              }
+            },
+            {
+              get: () => config.text_color || defaultConfig.text_color,
+              set: (value) => {
+                config.text_color = value;
+                window.elementSdk.setConfig({ text_color: value });
+              }
+            },
+            {
+              get: () => config.accent_color || defaultConfig.accent_color,
+              set: (value) => {
+                config.accent_color = value;
+                window.elementSdk.setConfig({ accent_color: value });
+              }
+            },
+            {
+              get: () => config.button_color || defaultConfig.button_color,
+              set: (value) => {
+                config.button_color = value;
+                window.elementSdk.setConfig({ button_color: value });
+              }
+            }
+          ],
+          borderables: [],
+          fontEditable: {
+            get: () => config.font_family || defaultConfig.font_family,
+            set: (value) => {
+              config.font_family = value;
+              window.elementSdk.setConfig({ font_family: value });
+            }
+          },
+          fontSizeable: {
+            get: () => config.font_size || defaultConfig.font_size,
+            set: (value) => {
+              config.font_size = value;
+              window.elementSdk.setConfig({ font_size: value });
+            }
+          }
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["app_title", config.app_title || defaultConfig.app_title],
+          ["button_text", config.button_text || defaultConfig.button_text],
+          ["download_text", config.download_text || defaultConfig.download_text],
+          ["facebook_text", config.facebook_text || defaultConfig.facebook_text],
+          ["twitter_text", config.twitter_text || defaultConfig.twitter_text]
+        ])
+      });
+    }
+
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const img = new Image();
+          img.onload = function() {
+            uploadedImage = img;
+            const preview = document.getElementById('previewImage');
+            preview.src = event.target.result;
+            preview.style.display = 'block';
+            document.getElementById('fileLabel').innerHTML = '<span>✅</span><span>Image Selected</span>';
+          };
+          img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById('cardForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const name = document.getElementById('nameInput').value;
+      const text = document.getElementById('textInput').value;
+      const background = document.getElementById('backgroundSelect').value;
+      
+      if (!uploadedImage) {
+        return;
+      }
+
+      generateCard(uploadedImage, name, text, background);
+    });
+
+    function getBackgroundColors(bgType) {
+      const backgrounds = {
+        'gradient': { start: '#667eea', end: '#764ba2' },
+        'white': { start: '#ffffff', end: '#ffffff' },
+        'lightblue': { start: '#e0f2fe', end: '#bae6fd' },
+        'darkblue': { start: '#1e40af', end: '#1e3a8a' },
+        'gray': { start: '#9ca3af', end: '#6b7280' },
+        'black': { start: '#1f2937', end: '#111827' }
+      };
+      return backgrounds[bgType] || backgrounds['gradient'];
+    }
+
+    function getTextColor(bgType) {
+      const darkBackgrounds = ['darkblue', 'gray', 'black'];
+      return darkBackgrounds.includes(bgType) ? '#ffffff' : '#1a202c';
+    }
+
+    function generateCard(image, name, text, background) {
+      const bgColors = getBackgroundColors(background);
+      const textColor = getTextColor(background);
+      const surfaceColor = background === 'black' ? '#374151' : '#ffffff';
+
+      const gradient = ctx.createLinearGradient(0, 0, 600, 800);
+      gradient.addColorStop(0, bgColors.start);
+      gradient.addColorStop(1, bgColors.end);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 600, 800);
+
+      ctx.fillStyle = surfaceColor;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+      ctx.shadowBlur = 30;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 10;
+      roundRect(ctx, 40, 120, 520, 640, 30);
+      ctx.fill();
+      ctx.shadowColor = 'transparent';
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(300, 80, 70, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+      
+      const imgSize = Math.min(image.width, image.height);
+      const sx = (image.width - imgSize) / 2;
+      const sy = (image.height - imgSize) / 2;
+      ctx.drawImage(image, sx, sy, imgSize, imgSize, 230, 10, 140, 140);
+      ctx.restore();
+
+      ctx.strokeStyle = surfaceColor;
+      ctx.lineWidth = 8;
+      ctx.beginPath();
+      ctx.arc(300, 80, 70, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const nameColor = background === 'black' ? '#f3f4f6' : textColor;
+      ctx.fillStyle = nameColor;
+      ctx.font = `bold 42px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.fillText(name, 300, 240);
+
+      const accentColor = background === 'black' ? '#9ca3af' : (background === 'white' ? '#667eea' : bgColors.end);
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(150, 280);
+      ctx.lineTo(450, 280);
+      ctx.stroke();
+
+      ctx.fillStyle = nameColor;
+      ctx.font = `28px Inter, sans-serif`;
+      ctx.textAlign = 'center';
+      
+      const words = text.split(' ');
+      let line = '';
+      let y = 350;
+      const maxWidth = 460;
+      const lineHeight = 40;
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        const metrics = ctx.measureText(testLine);
+        
+        if (metrics.width > maxWidth && i > 0) {
+          ctx.fillText(line.trim(), 300, y);
+          line = words[i] + ' ';
+          y += lineHeight;
+          
+          if (y > 700) break;
+        } else {
+          line = testLine;
+        }
+      }
+      
+      if (y <= 700) {
+        ctx.fillText(line.trim(), 300, y);
+      }
+
+      generatedCardDataUrl = canvas.toDataURL('image/png');
+
+      document.getElementById('placeholder').style.display = 'none';
+      document.getElementById('downloadBtn').disabled = false;
+      document.getElementById('socialShare').classList.add('visible');
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    document.getElementById('downloadBtn').addEventListener('click', function() {
+      const link = document.createElement('a');
+      link.download = 'profile-card.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    document.getElementById('shareFacebook').addEventListener('click', function(e) {
+      e.preventDefault();
+      const shareUrl = 'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href);
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    });
+
+    document.getElementById('shareTwitter').addEventListener('click', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('nameInput').value;
+      const text = 'Check out my profile card created with Profile Card Generator!';
+      const shareUrl = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    });
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a8c254f617735f2',t:'MTc2NDg2MDEzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
